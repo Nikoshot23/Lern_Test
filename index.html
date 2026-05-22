@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kompetenzcheck Quiz</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --surface-strong: #eef4ff;
+      --text: #172033;
+      --muted: #667085;
+      --border: #d9e2ef;
+      --accent: #2563eb;
+      --accent-dark: #1d4ed8;
+      --ok: #0f8f61;
+      --warn: #b7791f;
+      --bad: #c2413a;
+      --ink-soft: #344054;
+      --shadow: 0 20px 50px rgba(18, 32, 59, 0.10);
+      --radius: 8px;
+      --sidebar: 300px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.11), transparent 34rem),
+        linear-gradient(135deg, #f8fbff 0%, var(--bg) 48%, #f2f7f4 100%);
+      letter-spacing: 0;
+      overflow-x: hidden;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .app {
+      width: min(1320px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 36px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: end;
+      padding: 28px;
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid rgba(217, 226, 239, 0.9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero > * {
+      min-width: 0;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 4vw, 4rem);
+      line-height: 0.98;
+      font-weight: 800;
+      color: #111827;
+      letter-spacing: 0;
+    }
+
+    .source {
+      max-width: 760px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+
+    .source strong {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .score-card {
+      width: min(360px, 100%);
+      padding: 18px;
+      background: #101828;
+      color: #ffffff;
+      border-radius: var(--radius);
+      box-shadow: 0 14px 32px rgba(16, 24, 40, 0.22);
+      overflow: hidden;
+    }
+
+    .score-line {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      color: #dbeafe;
+      font-size: 0.88rem;
+    }
+
+    .score-main {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .score-main strong {
+      font-size: 2.6rem;
+      line-height: 1;
+    }
+
+    .progress {
+      height: 10px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+    }
+
+    .progress span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #38bdf8, #7dd3fc, #86efac);
+      border-radius: inherit;
+      transition: width 220ms ease;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: var(--sidebar) minmax(0, 1fr);
+      gap: 22px;
+      margin-top: 22px;
+      align-items: start;
+    }
+
+    .topics {
+      position: sticky;
+      top: 18px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 14px 34px rgba(18, 32, 59, 0.08);
+    }
+
+    .topics-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin: 4px 4px 12px;
+      color: var(--ink-soft);
+      font-weight: 750;
+      font-size: 0.95rem;
+    }
+
+    .topics-header span {
+      overflow-wrap: anywhere;
+    }
+
+    .topic-list {
+      display: grid;
+      gap: 7px;
+    }
+
+    .topic-button {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      width: 100%;
+      min-height: 44px;
+      padding: 8px 10px;
+      text-align: left;
+      color: var(--ink-soft);
+      background: transparent;
+      border-radius: var(--radius);
+      transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+    }
+
+    .topic-button:hover,
+    .topic-button:focus-visible {
+      outline: none;
+      background: var(--surface-strong);
+      color: var(--accent-dark);
+    }
+
+    .topic-button.active {
+      background: #dbeafe;
+      color: #1744a0;
+    }
+
+    .topic-number {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      color: #ffffff;
+      background: var(--accent);
+      border-radius: 50%;
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .topic-title {
+      overflow-wrap: anywhere;
+      font-size: 0.92rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .topic-status {
+      color: var(--muted);
+      font-size: 0.78rem;
+      white-space: nowrap;
+    }
+
+    .quiz {
+      display: grid;
+      gap: 18px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .toolbar-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 5px 10px;
+      color: #164e63;
+      background: #dff7fb;
+      border: 1px solid #bae6fd;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      font-weight: 750;
+    }
+
+    .btn {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 9px 14px;
+      color: #ffffff;
+      background: var(--accent);
+      border-radius: var(--radius);
+      font-size: 0.92rem;
+      font-weight: 800;
+      transition: background 160ms ease, transform 160ms ease;
+    }
+
+    .btn:hover,
+    .btn:focus-visible {
+      outline: none;
+      background: var(--accent-dark);
+    }
+
+    .btn.secondary {
+      color: var(--accent-dark);
+      background: #eaf1ff;
+      border: 1px solid #c9dcff;
+    }
+
+    .btn.secondary:hover,
+    .btn.secondary:focus-visible {
+      background: #dbeafe;
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .question-card {
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 16px 42px rgba(18, 32, 59, 0.08);
+    }
+
+    .question-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 20px 22px;
+      background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .question-kicker {
+      margin: 0 0 7px;
+      color: var(--accent-dark);
+      font-size: 0.82rem;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+
+    .question-head h2 {
+      margin: 0;
+      font-size: clamp(1.2rem, 2.2vw, 1.75rem);
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    .question-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+      align-content: flex-start;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 5px 9px;
+      color: #475467;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .question-body {
+      padding: 22px;
+    }
+
+    .prompt {
+      margin: 0 0 16px;
+      color: var(--ink-soft);
+      font-size: 1rem;
+      line-height: 1.55;
+    }
+
+    .options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .option {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+      padding: 13px 14px;
+      background: #fbfdff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+    }
+
+    .option:hover {
+      border-color: #adc7f8;
+      background: #f6faff;
+    }
+
+    .option.correct {
+      border-color: rgba(15, 143, 97, 0.45);
+      background: #ecfdf5;
+    }
+
+    .option.wrong {
+      border-color: rgba(194, 65, 58, 0.42);
+      background: #fff3f2;
+    }
+
+    .option input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin: 2px 0 0;
+      accent-color: var(--accent);
+    }
+
+    .letter {
+      margin-right: 6px;
+      color: #111827;
+      font-weight: 850;
+    }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+    }
+
+    .answer-field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .answer-field label {
+      color: var(--ink-soft);
+      font-size: 0.88rem;
+      font-weight: 800;
+    }
+
+    .answer-field input {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+      color: var(--text);
+      background: #fbfdff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .answer-field input:focus {
+      border-color: #80a9fa;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+
+    .answer-field.good input {
+      border-color: rgba(15, 143, 97, 0.6);
+      background: #f0fdf4;
+    }
+
+    .answer-field.bad input {
+      border-color: rgba(194, 65, 58, 0.58);
+      background: #fff5f4;
+    }
+
+    .feedback {
+      display: none;
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      line-height: 1.5;
+    }
+
+    .feedback.show {
+      display: block;
+    }
+
+    .feedback.correct {
+      color: #075f43;
+      background: #ecfdf5;
+      border-color: #a7f3d0;
+    }
+
+    .feedback.partial {
+      color: #7a4b12;
+      background: #fffbeb;
+      border-color: #f8d78c;
+    }
+
+    .feedback.incorrect {
+      color: #9a261f;
+      background: #fff1f0;
+      border-color: #fecaca;
+    }
+
+    .feedback h3 {
+      margin: 0 0 7px;
+      font-size: 1rem;
+    }
+
+    .feedback p {
+      margin: 0;
+    }
+
+    .free-task {
+      padding: 16px;
+      background: #f8fafc;
+      border: 1px dashed #b8c7da;
+      border-radius: var(--radius);
+      color: var(--ink-soft);
+      line-height: 1.55;
+    }
+
+    .free-task strong {
+      color: #1f2937;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .results {
+      display: none;
+      padding: 22px;
+      background: #101828;
+      color: #ffffff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .results.show {
+      display: block;
+    }
+
+    .results h2 {
+      margin: 0 0 8px;
+      font-size: 1.55rem;
+    }
+
+    .results p {
+      margin: 0 0 16px;
+      color: #d0d5dd;
+      line-height: 1.55;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .result-tile {
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: var(--radius);
+    }
+
+    .result-tile span {
+      display: block;
+      color: #bfdbfe;
+      font-size: 0.78rem;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+
+    .result-tile strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 1.7rem;
+    }
+
+    @media (max-width: 980px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .score-card {
+        width: 100%;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .topics {
+        position: static;
+      }
+
+      .topic-list {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+    }
+
+    @media (max-width: 620px) {
+      .app {
+        width: 100%;
+        max-width: 100%;
+        padding: 10px 10px 36px;
+        overflow: hidden;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 10vw, 2.75rem);
+        line-height: 1.04;
+      }
+
+      .hero,
+      .topics,
+      .toolbar,
+      .question-card,
+      .results {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .hero,
+      .question-head,
+      .question-body,
+      .toolbar,
+      .results {
+        padding: 16px;
+      }
+
+      .source {
+        max-width: 100%;
+        word-break: break-word;
+      }
+
+      .source strong {
+        display: inline-block;
+        max-width: 100%;
+        word-break: break-all;
+        white-space: normal;
+      }
+
+      .score-card {
+        width: auto;
+        max-width: 100%;
+      }
+
+      .score-line {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      .question-head {
+        display: grid;
+      }
+
+      .question-meta {
+        justify-content: flex-start;
+      }
+
+      .topic-list {
+        grid-template-columns: 1fr;
+      }
+
+      .topic-button {
+        grid-template-columns: 28px minmax(0, 1fr);
+      }
+
+      .topic-status {
+        grid-column: 2;
+        white-space: normal;
+      }
+
+      .toolbar-actions,
+      .actions {
+        width: 100%;
+      }
+
+      .btn {
+        flex: 1;
+      }
+
+      .result-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <h1 id="page-title">Kompetenzcheck Quiz</h1>
+        <p class="source">Lokaler Test aus <strong>LF 05 · Datenverwaltung</strong>. Выбирай верные Aussagen, проверяй ответы сразу и тренируй открытые задания без автопроверки.</p>
+      </div>
+      <aside class="score-card" aria-label="Fortschritt">
+        <div class="score-line">
+          <span>Autogeprüft</span>
+          <span id="progressLabel">0 / 12 beantwortet</span>
+        </div>
+        <div class="score-main">
+          <strong id="scoreValue">0%</strong>
+          <span>aktuelle Trefferquote</span>
+        </div>
+        <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+      </aside>
+    </section>
+
+    <section class="layout">
+      <nav class="topics" aria-label="Themen">
+        <div class="topics-header">
+          <span>Themen</span>
+          <span id="topicCounter">13 Karten</span>
+        </div>
+        <div class="topic-list" id="topicList"></div>
+      </nav>
+
+      <section class="quiz" aria-live="polite">
+        <div class="toolbar">
+          <span class="pill" id="currentTopic">Bereit</span>
+          <div class="toolbar-actions">
+            <button class="btn secondary" type="button" id="showResultsBtn">Ergebnis</button>
+            <button class="btn secondary" type="button" id="resetBtn">Reset</button>
+          </div>
+        </div>
+        <div id="questionHost"></div>
+        <section class="results" id="resultsPanel" aria-label="Ergebnis">
+          <h2>Zwischenergebnis</h2>
+          <p>Die freien Aufgaben zählen nicht in die Prozentwertung, bleiben aber im Lernumfang sichtbar.</p>
+          <div class="result-grid">
+            <div class="result-tile"><span>Richtig</span><strong id="resultCorrect">0</strong></div>
+            <div class="result-tile"><span>Teilweise</span><strong id="resultPartial">0</strong></div>
+            <div class="result-tile"><span>Offen</span><strong id="resultOpen">12</strong></div>
+          </div>
+          <button class="btn" type="button" id="retryMissedBtn">Zu offenen Fragen</button>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const questions = [
+      {
+        id: "softwareentwickler",
+        section: "5.1",
+        title: "Aufgaben und Kompetenzen von Softwareentwicklern",
+        type: "multiple-correct",
+        prompt: "Welche Aussagen sind richtig?",
+        answers: ["b", "c", "d", "e", "g"],
+        explanation: "Softwareentwicklung umfasst Analyse, Front- und Backend, Beratung, Tests, Wartung und Dokumentation. Neben Fachwissen sind auch soziale und methodische Kompetenzen wichtig.",
+        options: {
+          a: "Softwareentwickler beschäftigen sich nur mit dem Programmieren von Software.",
+          b: "Die Aufgabenbereiche von Softwareentwicklern sind sehr vielfältig.",
+          c: "Neben fundierten fachlichen Kenntnissen benötigen Softwareentwickler auch noch andere Kompetenzen.",
+          d: "Java, C# und Python sind heutzutage wichtige Programmiersprachen.",
+          e: "Kenntnisse in mehreren Programmiersprachen sind für Softwareentwickler von Vorteil.",
+          f: "Entwicklerdokumentationen werden nicht von Softwareentwicklern verfasst.",
+          g: "Softwareentwickler müssen auch Fachkenntnisse im Testen und Debuggen von Software besitzen.",
+          h: "Heutzutage müssen Softwareentwickler nicht mehr teamfähig sein."
+        }
+      },
+      {
+        id: "nicht-fachliche-kompetenzen",
+        section: "5.1",
+        title: "Nicht fachliche Kompetenzen auswählen",
+        type: "free-task",
+        prompt: "Wählen Sie drei nicht fachliche Kompetenzen für Softwareentwickler aus, welche für Sie am wichtigsten erscheinen und begründen Sie kurz Ihre Entscheidung.",
+        explanation: "Beispielantwort: Teamfähigkeit, analytisches Denken und Organisationstalent. Wichtig ist hier die nachvollziehbare Begründung, nicht eine einzige Musterlösung."
+      },
+      {
+        id: "softwareanpassung",
+        section: "5.1",
+        title: "Anpassung und Erweiterung von Software",
+        type: "multiple-correct",
+        prompt: "Welche Aussagen sind richtig?",
+        answers: ["a", "c", "f"],
+        explanation: "Individualsoftware wird meist im Quellcode angepasst. Customizing verändert normalerweise Konfiguration/Parameter, und Datenmigration bedeutet die Übertragung in ein neues System.",
+        options: {
+          a: "Bei der Anpassung und Erweiterung von Individualsoftware wird in der Regel der Quellcode verändert.",
+          b: "Beim Customizing von Standardsoftware wird auch der Quellcode des Programms verändert.",
+          c: "Erweiterungsprogrammierung wird eingesetzt, wenn die Konfiguration und Parametrisierung von Software nicht ausreichen.",
+          d: "Standardsoftware kann nicht angepasst werden.",
+          e: "Anpassungen von Software dürfen nur der Softwarehersteller oder der Softwareanbieter vornehmen.",
+          f: "Unter Datenmigration wird das Übertragen von Daten von einem Altsystem auf ein neues System verstanden."
+        }
+      },
+      {
+        id: "zahlen",
+        section: "5.2",
+        title: "Ganze Zahlen und Gleitkommazahlen",
+        type: "multiple-correct",
+        prompt: "Welche Aussagen sind richtig?",
+        answers: ["a", "c", "d"],
+        explanation: "Das erste Bit kann als Vorzeichenbit dienen. Negative ganze Zahlen werden überwiegend als Zweierkomplement dargestellt. Die Mantisse beeinflusst die Genauigkeit von Gleitkommazahlen.",
+        options: {
+          a: "Für die Darstellung eines negativen Vorzeichens wird das erste Bit einer Bit-Folge verwendet.",
+          b: "Ganze Zahlen und Gleitkommazahlen werden auf die gleiche Weise dargestellt.",
+          c: "Zur Darstellung von negativen ganzen Zahlen wird überwiegend das Zweierkomplement verwendet.",
+          d: "Die Genauigkeit von Gleitkommazahlen hängt von der Anzahl der Bit der Mantisse ab."
+        }
+      },
+      {
+        id: "dezimal-dual",
+        section: "5.2",
+        title: "Dezimalzahlen als Dualzahlen darstellen",
+        type: "text-answer",
+        prompt: "Stellen Sie folgende dezimale Zahlen als Dualzahl dar. Verwenden Sie Zweierkomplement; bei -3 ist 8 Bit oder die kurze 4-Bit-Schreibweise akzeptiert.",
+        explanation: "Die Werte werden im Zweierkomplement angegeben. -3 ist als 11111101 in 8 Bit oder als 1101 in 4 Bit korrekt.",
+        fields: [
+          { label: "-71", answers: ["10111001"] },
+          { label: "-126", answers: ["10000010"] },
+          { label: "-3", answers: ["11111101", "1101"] },
+          { label: "-16", answers: ["11110000"] }
+        ]
+      },
+      {
+        id: "dual-dezimal",
+        section: "5.2",
+        title: "Dualzahlen als Dezimalzahlen darstellen",
+        type: "text-answer",
+        prompt: "Stellen Sie folgende duale Zahlen als Dezimalzahl dar. Das erste Bit wird als Vorzeichenbit im Zweierkomplement verwendet.",
+        explanation: "Bei Zweierkomplement steht das höchste Bit für negative Werte. Beispiel: 11110000 entspricht -16.",
+        fields: [
+          { label: "0110", answers: ["6", "+6"] },
+          { label: "1010", answers: ["-6"] },
+          { label: "1001 1111", answers: ["-97"] },
+          { label: "0110 0000", answers: ["96", "+96"] },
+          { label: "1111 0000", answers: ["-16"] }
+        ]
+      },
+      {
+        id: "grafikdaten",
+        section: "5.2",
+        title: "Grafikdaten",
+        type: "multiple-correct",
+        prompt: "Welche Aussagen sind richtig?",
+        answers: ["a", "b", "c", "e"],
+        explanation: "Farbtiefe hängt von der Anzahl der Farben ab, Bitmap-Pixel ergeben sich aus Breite mal Höhe, Vektorgrafiken benötigen oft weniger Speicher und skalieren verlustfrei. Rastergrafiken skalieren nicht verlustfrei.",
+        options: {
+          a: "Die gewählte Farbtiefe einer Rastergrafik hängt von der Anzahl der Farben ab, welche dargestellt werden sollen.",
+          b: "Die Anzahl der Bildpunkte einer Bitmap kann aus deren Höhe und Breite in Pixel berechnet werden.",
+          c: "Vektorgrafiken benötigen weniger Speicherplatz als Rastergrafiken.",
+          d: "Vektor- und Rastergrafiken skalieren ohne Qualitätsverlust.",
+          e: "Es gibt additive und subtraktive Farbmodelle."
+        }
+      },
+      {
+        id: "audiodaten",
+        section: "5.2",
+        title: "Audiodaten",
+        type: "multiple-correct",
+        prompt: "Welche Aussagen sind richtig?",
+        answers: ["a", "b", "d"],
+        explanation: "Audiodaten werden durch Sampling digitalisiert. Die Tonhöhe hängt von der zeitlichen Verteilung der Amplituden ab. Die Sampling-Tiefe, nicht die Sampling-Rate, beschreibt die Bit pro Ton.",
+        options: {
+          a: "Das Verfahren, mit dem Audiodaten digitalisiert werden, nennt sich Sampling.",
+          b: "Die Tonhöhe ergibt sich aus der zeitlichen Verteilung der Amplituden.",
+          c: "Die Sampling-Rate bestimmt, wie viele Bit zur Speicherung von einem Ton verwendet werden.",
+          d: "Die Anzahl der Tonkanäle beeinflusst das Hörerlebnis.",
+          e: "Für Stereo braucht nur ein Kanal verwendet zu werden."
+        }
+      },
+      {
+        id: "dateien",
+        section: "5.6",
+        title: "Dateien, Streams, CSV und XML",
+        type: "multiple-correct",
+        prompt: "Welche Aussagen sind richtig?",
+        answers: ["a", "b", "c", "d", "e", "f", "g", "h", "i"],
+        explanation: "Streams sind Datenflüsse, Dateien speichern strukturierte Daten dauerhaft und Dateiendungen geben Hinweise auf die Struktur. XML allein macht die Datenverwaltung jedoch nicht unabhängig von Programmen.",
+        options: {
+          a: "Ein Data Stream ist ein kontinuierlicher Fluss von Daten.",
+          b: "Im Arbeitsspeicher können die Daten nicht dauerhaft gespeichert werden.",
+          c: "Datenströme können im Text- und Binärmodus geöffnet werden.",
+          d: "Binär-Streams sind für Menschen nicht direkt lesbar.",
+          e: "In einer Datei werden Daten strukturiert gespeichert.",
+          f: "Dateien haben einen Dateinamen.",
+          g: "Die Dateigröße gibt die Anzahl der gespeicherten Bytes in einer Datei an.",
+          h: "Durch eine bekannte Dateiendung kann man auf die Struktur der Datei schließen.",
+          i: "In CSV-Dateien werden die Daten durch ein Trennzeichen voneinander getrennt.",
+          j: "Durch XML-Dateien wird die Datenverwaltung unabhängig von den Programmen."
+        }
+      },
+      {
+        id: "datenbanksysteme",
+        section: "5.7",
+        title: "Datenbanksysteme",
+        type: "multiple-correct",
+        prompt: "Welche Aussagen sind richtig?",
+        answers: ["a", "c", "d", "e", "f", "h", "i", "j", "m", "n", "o", "r"],
+        explanation: "Ein Datenbanksystem besteht aus Datenbasis und DBMS. ANSI/SPARC trennt Anwendung und Datenspeicherung. MySQL/PostgreSQL sind DBMS, MongoDB ist dokumentenorientiert, nicht Graphdatenbank.",
+        options: {
+          a: "Ein Datenbanksystem besteht aus einer Datenbasis und einem Datenbankmanagementsystem.",
+          b: "MySQL ist eine Datenbasis.",
+          c: "PostgreSQL ist ein DBMS.",
+          d: "Ziel der ANSI/SPARC-Architektur ist die Entkopplung der Anwendung von der Datenspeicherung.",
+          e: "Das interne Schema ist Bestandteil der ANSI/SPARC-Architektur.",
+          f: "Das externe Schema ermöglicht die Bildung unterschiedlicher Benutzergruppen.",
+          g: "Das externe und das interne Schema hängen stark voneinander ab.",
+          h: "Das interne Schema beschreibt, auf welchen Speichermedien die Daten gespeichert werden.",
+          i: "Das konzeptionelle Schema beschreibt die Beziehungen zwischen den Daten.",
+          j: "Bei Stand-Alone-Datenbanken befinden sich Datenbank und -programm auf einem System.",
+          k: "File-Share-Datenbanken erzeugen redundante Daten.",
+          l: "Bei Client-Server-Datenbanken befinden sich die Datenbasis und das Datenbankmanagementsystem auf dem Client.",
+          m: "MySQL ist ein Client-Server-Datenbanksystem.",
+          n: "Relationale Datenbanken sind sehr weitverbreitet.",
+          o: "Spaltenorientierte Datenbanken gehören zu den NoSQL-Datenbanken.",
+          p: "Dokumentenorientierte Datenbanken sind eine Unterart von relationalen Datenbanken.",
+          q: "MongoDB ist eine Graphdatenbank.",
+          r: "Bei hierarchischen Datenbanken werden die Daten in einer Baumstruktur verwaltet."
+        }
+      },
+      {
+        id: "sqlite",
+        section: "5.7",
+        title: "SQLite mit Python",
+        type: "multiple-correct",
+        prompt: "Welche Aussagen sind richtig?",
+        answers: ["a", "c", "e"],
+        explanation: "SQLite nutzt das relationale Datenmodell. In Python wird mit dem Modul sqlite3 gearbeitet; Abfrageergebnisse stehen über Cursor-Objekte bereit.",
+        options: {
+          a: "SQLite liegt das relationale Datenmodell zugrunde.",
+          b: "SQLite muss zusätzlich zu Python installiert werden.",
+          c: "Um in Python mit SQLite zu arbeiten, muss das Modul sqlite3 importiert werden.",
+          d: "Mit dem make(...)-Befehl werden SQL-Anweisungen in SQLite ausgeführt.",
+          e: "Die Datensätze einer SQL-Abfrage stehen im Cursor-Objekt zur Verfügung."
+        }
+      },
+      {
+        id: "softwaretests",
+        section: "5.8",
+        title: "Softwaretests",
+        type: "multiple-correct",
+        prompt: "Welche Aussagen sind richtig?",
+        answers: ["a", "d", "f", "g", "h", "k", "m", "n", "p", "s"],
+        explanation: "Tests liefern Aussagen über Anforderungen und Qualität, aber keinen vollständigen Fehlerfreiheitsnachweis. Statische Verfahren führen Software nicht aus; Whitebox kennt Code/Struktur, Blackbox nicht alle Pfade.",
+        options: {
+          a: "Mit Softwaretests sollen Aussagen darüber getroffen werden, ob die spezifizierten Anforderungen erfüllt wurden oder nicht.",
+          b: "Durch umfangreiche Tests kann sichergestellt werden, dass die Software keine Fehler mehr enthält.",
+          c: "Zum Testen muss die Software in jedem Fall ausgeführt werden.",
+          d: "Durch Testen wird die Qualität von Software erhöht.",
+          e: "Bei manchen Vorgehensmodellen müssen keine Testdaten bestimmt werden.",
+          f: "Der Testprozess lässt sich grob in die Schritte Testplanung, Testentwurf, Testvorbereitung, Testdurchführung, Testauswertung und Testabschluss einteilen.",
+          g: "Am Ende des Testentwurfes wird eine Testspezifikation angefertigt.",
+          h: "Die Testverfahren lassen sich in dynamische und in statische Testverfahren einteilen.",
+          i: "Beim Review wird der Quellcode von einem Gutachterteam durchsucht, der Programmierer ist aber nicht dabei.",
+          j: "Beim Audit stellt der Programmierer sein Programm vor und die Gutachter stellen ohne weitere Vorbereitung Fragen.",
+          k: "Beim Whitebox-Test sind die Struktur des Programms und der Quellcode bekannt.",
+          l: "Beim Blackbox-Test werden sämtliche Programmpfade getestet.",
+          m: "Die Effizienz eines Programms kann durch Performancetests überprüft werden.",
+          n: "Die Analysierbarkeit und die Modifizierbarkeit eines Programms werden im Rahmen der nicht funktionalen Anforderungen getestet.",
+          o: "Beim Integrationstest wird überprüft, inwieweit sich fremde Bibliotheken in eine Klasse integrieren lassen.",
+          p: "Der Abnahmetest findet am Ende des Projektes zusammen mit dem Auftraggeber statt.",
+          q: "Zum Alphatest werden sehr viele externe Tester hinzugezogen.",
+          r: "Das fertige Testprotokoll ist fester Bestandteil der Testspezifikation.",
+          s: "Der Testbericht enthält auch Angaben zum Abschluss des Testprozesses."
+        }
+      },
+      {
+        id: "tdd",
+        section: "5.8",
+        title: "Testgetriebene Entwicklung",
+        type: "multiple-correct",
+        prompt: "Welche Aussagen sind richtig?",
+        answers: ["a", "b", "e", "f"],
+        explanation: "Bei TDD werden Tests zuerst geschrieben, dann wird die einfachste funktionierende Implementierung erstellt und anschließend refaktorisiert. Redundanzen können reduziert werden, eine gute Gesamtarchitektur bleibt aber anspruchsvoll.",
+        options: {
+          a: "Bei der TDD werden die Tests vor der eigentlichen Implementation des Programmcodes geschrieben.",
+          b: "Bei der Programmierung versucht man dann, den Test so einfach wie möglich zu erfüllen.",
+          c: "In der Refaktorisierungsphase wird der Test an das Programm angepasst.",
+          d: "Ein Vorteil der TDD ist, dass man viele kleine Einzeltests erhält.",
+          e: "Ein weiterer Vorteil ist, dass Code-Redundanzen vermieden werden.",
+          f: "Die Entwicklung einer guten Systemarchitektur ist mit dieser Vorgehensweise schwierig."
+        }
+      },
+      {
+        id: "dokumentation",
+        section: "5.8",
+        title: "Softwaredokumentation",
+        type: "multiple-correct",
+        prompt: "Welche Aussagen sind richtig?",
+        answers: ["a", "c", "d"],
+        explanation: "Gute Dokumentationen helfen beim Einarbeiten, müssen zielgruppengerecht, aktuell, verständlich und schnell erfassbar sein. Dokumentation ist ein kontinuierlicher Prozess.",
+        options: {
+          a: "Durch eine gute Dokumentation des Quellcodes und des Softwareentwurfes ist es möglich, dass sich neue Entwickler schnell in das Softwareprojekt und den Quellcode einarbeiten.",
+          b: "Jede Dokumentation muss alle verfügbaren Informationen enthalten.",
+          c: "Dokumentationen müssen auf ihre Zielgruppe zugeschnitten sein.",
+          d: "Gute Dokumentationen sind schnell zu lesen.",
+          e: "Dokumentationen müssen nicht aktuell und vollständig sein.",
+          f: "Eine Software sollte immer erst nach ihrer Erstellung dokumentiert werden.",
+          g: "Dokumentationen werden immer von den Entwicklern der Software geschrieben."
+        }
+      },
+      {
+        id: "arbeitsbuch",
+        section: "Arbeitsbuch",
+        title: "Externe Arbeitsbuch-Aufgaben",
+        type: "free-task",
+        prompt: "Bearbeiten Sie die im PDF genannten Aufgaben aus dem Arbeitsbuch, z. B. Lernsituation 1 Aufgabe 1/3, Lernsituation 2 Aufgabe 5/6/9/10/11, Lernsituation 5 Aufgabe 1/2, Lernsituation 6 Aufgabe 1/2/3/12 und Lernsituation 7 Aufgabe 1-7.",
+        explanation: "Diese Aufgaben sind im PDF nur referenziert. Ohne Arbeitsbuch-Datei gibt es keinen vollständigen Aufgabentext und keinen belastbaren Lösungsschlüssel."
+      }
+    ];
+
+    const state = {
+      activeId: questions[0].id,
+      results: {}
+    };
+
+    const checkedQuestions = questions.filter((question) => question.type !== "free-task");
+    const host = document.getElementById("questionHost");
+    const topicList = document.getElementById("topicList");
+    const currentTopic = document.getElementById("currentTopic");
+    const progressLabel = document.getElementById("progressLabel");
+    const progressBar = document.getElementById("progressBar");
+    const scoreValue = document.getElementById("scoreValue");
+    const resultsPanel = document.getElementById("resultsPanel");
+
+    function normalizeAnswer(value) {
+      return String(value).replace(/\s+/g, "").replace(",", ".").trim().toLowerCase();
+    }
+
+    function arraysEqual(a, b) {
+      return a.length === b.length && a.every((value, index) => value === b[index]);
+    }
+
+    function activeQuestion() {
+      return questions.find((question) => question.id === state.activeId) || questions[0];
+    }
+
+    function renderTopics() {
+      topicList.innerHTML = questions.map((question, index) => {
+        const result = state.results[question.id];
+        const status = question.type === "free-task"
+          ? "frei"
+          : result ? (result.status === "correct" ? "richtig" : result.status === "partial" ? "teilw." : "falsch") : "offen";
+        return `
+          <button class="topic-button ${question.id === state.activeId ? "active" : ""}" type="button" data-topic="${question.id}">
+            <span class="topic-number">${index + 1}</span>
+            <span class="topic-title">${question.title}</span>
+            <span class="topic-status">${status}</span>
+          </button>
+        `;
+      }).join("");
+
+      document.querySelectorAll("[data-topic]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.activeId = button.dataset.topic;
+          render();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      });
+    }
+
+    function renderQuestion() {
+      const question = activeQuestion();
+      currentTopic.textContent = `${question.section} · ${question.title}`;
+      const typeLabel = question.type === "multiple-correct"
+        ? "Mehrfachauswahl"
+        : question.type === "text-answer" ? "Texteingabe" : "Reflexion";
+
+      host.innerHTML = `
+        <article class="question-card">
+          <header class="question-head">
+            <div>
+              <p class="question-kicker">Kompetenzcheck · ${question.section}</p>
+              <h2>${question.title}</h2>
+            </div>
+            <div class="question-meta">
+              <span class="tag">${typeLabel}</span>
+              ${question.type === "free-task" ? '<span class="tag">nicht bewertet</span>' : '<span class="tag">autogeprüft</span>'}
+            </div>
+          </header>
+          <div class="question-body">
+            <p class="prompt">${question.prompt}</p>
+            ${renderQuestionBody(question)}
+          </div>
+        </article>
+      `;
+
+      attachQuestionHandlers(question);
+      applyStoredResult(question);
+    }
+
+    function renderQuestionBody(question) {
+      if (question.type === "free-task") {
+        return `
+          <div class="free-task">
+            <strong>Reflexionsaufgabe / nicht automatisch bewertet.</strong><br>
+            ${question.explanation}
+          </div>
+          <div class="actions">
+            <button class="btn" type="button" id="markReadBtn">Als erledigt markieren</button>
+            ${navigationButtons()}
+          </div>
+        `;
+      }
+
+      if (question.type === "text-answer") {
+        return `
+          <div class="answer-grid">
+            ${question.fields.map((field, index) => `
+              <div class="answer-field" data-field="${index}">
+                <label for="${question.id}-${index}">${field.label}</label>
+                <input id="${question.id}-${index}" type="text" autocomplete="off" data-answer-field="${index}" placeholder="Antwort eingeben">
+              </div>
+            `).join("")}
+          </div>
+          <div class="feedback" id="feedback"></div>
+          <div class="actions">
+            <button class="btn" type="button" id="checkBtn">Prüfen</button>
+            <button class="btn secondary" type="button" id="revealBtn">Lösung zeigen</button>
+            ${navigationButtons()}
+          </div>
+        `;
+      }
+
+      return `
+        <div class="options">
+          ${Object.entries(question.options).map(([letter, text]) => `
+            <label class="option" data-option="${letter}">
+              <input type="checkbox" value="${letter}">
+              <span><span class="letter">${letter})</span>${text}</span>
+            </label>
+          `).join("")}
+        </div>
+        <div class="feedback" id="feedback"></div>
+        <div class="actions">
+          <button class="btn" type="button" id="checkBtn">Prüfen</button>
+          <button class="btn secondary" type="button" id="revealBtn">Lösung zeigen</button>
+          ${navigationButtons()}
+        </div>
+      `;
+    }
+
+    function navigationButtons() {
+      return `
+        <button class="btn secondary" type="button" id="prevBtn">Zurück</button>
+        <button class="btn secondary" type="button" id="nextBtn">Weiter</button>
+      `;
+    }
+
+    function attachQuestionHandlers(question) {
+      const checkButton = document.getElementById("checkBtn");
+      const revealButton = document.getElementById("revealBtn");
+      const markReadButton = document.getElementById("markReadBtn");
+      const prevButton = document.getElementById("prevBtn");
+      const nextButton = document.getElementById("nextBtn");
+
+      if (checkButton) {
+        checkButton.addEventListener("click", () => checkAnswer(question, false));
+      }
+
+      if (revealButton) {
+        revealButton.addEventListener("click", () => checkAnswer(question, true));
+      }
+
+      if (markReadButton) {
+        markReadButton.addEventListener("click", () => {
+          state.results[question.id] = { status: "free", score: 0 };
+          goNext();
+        });
+      }
+
+      prevButton.addEventListener("click", goPrevious);
+      nextButton.addEventListener("click", goNext);
+    }
+
+    function checkAnswer(question, reveal) {
+      if (question.type === "multiple-correct") {
+        const selected = [...document.querySelectorAll(".option input:checked")].map((input) => input.value).sort();
+        const correct = [...question.answers].sort();
+        const selectedCorrect = selected.filter((letter) => correct.includes(letter)).length;
+        const selectedWrong = selected.filter((letter) => !correct.includes(letter)).length;
+        let status = "incorrect";
+        if (arraysEqual(selected, correct)) status = "correct";
+        else if (selectedCorrect > 0 && selectedWrong === 0) status = "partial";
+
+        state.results[question.id] = { status, score: status === "correct" ? 1 : status === "partial" ? 0.5 : 0 };
+        showOptionFeedback(question, reveal);
+        showFeedback(question, status, `Richtige Antworten: ${correct.join(", ")}.`);
+      }
+
+      if (question.type === "text-answer") {
+        const values = question.fields.map((field, index) => {
+          const input = document.querySelector(`[data-answer-field="${index}"]`);
+          return {
+            value: normalizeAnswer(input.value),
+            correct: field.answers.map(normalizeAnswer)
+          };
+        });
+        const correctCount = values.filter((item) => item.correct.includes(item.value)).length;
+        const status = correctCount === values.length ? "correct" : correctCount > 0 ? "partial" : "incorrect";
+
+        state.results[question.id] = { status, score: correctCount / values.length };
+        showTextFeedback(question, values, reveal);
+        const solution = question.fields.map((field) => `${field.label} = ${field.answers[0]}`).join("; ");
+        showFeedback(question, status, `Lösung: ${solution}.`);
+      }
+
+      updateStats();
+      renderTopics();
+    }
+
+    function showOptionFeedback(question, reveal) {
+      document.querySelectorAll(".option").forEach((option) => {
+        const letter = option.dataset.option;
+        const checkbox = option.querySelector("input");
+        option.classList.toggle("correct", question.answers.includes(letter));
+        option.classList.toggle("wrong", checkbox.checked && !question.answers.includes(letter));
+        if (reveal && question.answers.includes(letter)) checkbox.checked = true;
+      });
+    }
+
+    function showTextFeedback(question, values, reveal) {
+      question.fields.forEach((field, index) => {
+        const wrapper = document.querySelector(`[data-field="${index}"]`);
+        const input = document.querySelector(`[data-answer-field="${index}"]`);
+        const isCorrect = values[index].correct.includes(values[index].value);
+        wrapper.classList.toggle("good", isCorrect);
+        wrapper.classList.toggle("bad", !isCorrect);
+        if (reveal && !isCorrect) {
+          input.value = field.answers[0];
+          wrapper.classList.add("good");
+          wrapper.classList.remove("bad");
+        }
+      });
+    }
+
+    function showFeedback(question, status, solutionLine) {
+      const feedback = document.getElementById("feedback");
+      const title = status === "correct" ? "Richtig" : status === "partial" ? "Teilweise richtig" : "Noch nicht korrekt";
+      feedback.className = `feedback show ${status}`;
+      feedback.innerHTML = `<h3>${title}</h3><p>${solutionLine} ${question.explanation}</p>`;
+    }
+
+    function applyStoredResult(question) {
+      const result = state.results[question.id];
+      if (!result || question.type === "free-task") return;
+      if (question.type === "multiple-correct") {
+        showOptionFeedback(question, false);
+        showFeedback(question, result.status, `Richtige Antworten: ${question.answers.join(", ")}.`);
+      }
+      if (question.type === "text-answer") {
+        showFeedback(question, result.status, "Diese Aufgabe wurde bereits geprüft.");
+      }
+    }
+
+    function goPrevious() {
+      const index = questions.findIndex((question) => question.id === state.activeId);
+      state.activeId = questions[Math.max(0, index - 1)].id;
+      render();
+    }
+
+    function goNext() {
+      const index = questions.findIndex((question) => question.id === state.activeId);
+      state.activeId = questions[Math.min(questions.length - 1, index + 1)].id;
+      render();
+    }
+
+    function updateStats() {
+      const answered = checkedQuestions.filter((question) => state.results[question.id]).length;
+      const score = checkedQuestions.reduce((sum, question) => sum + (state.results[question.id]?.score || 0), 0);
+      const percent = checkedQuestions.length ? Math.round((score / checkedQuestions.length) * 100) : 0;
+      const correct = checkedQuestions.filter((question) => state.results[question.id]?.status === "correct").length;
+      const partial = checkedQuestions.filter((question) => state.results[question.id]?.status === "partial").length;
+      const open = checkedQuestions.length - answered;
+
+      progressLabel.textContent = `${answered} / ${checkedQuestions.length} beantwortet`;
+      progressBar.style.width = `${Math.round((answered / checkedQuestions.length) * 100)}%`;
+      scoreValue.textContent = `${percent}%`;
+      document.getElementById("resultCorrect").textContent = correct;
+      document.getElementById("resultPartial").textContent = partial;
+      document.getElementById("resultOpen").textContent = open;
+    }
+
+    function render() {
+      renderTopics();
+      renderQuestion();
+      updateStats();
+      resultsPanel.classList.remove("show");
+    }
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      state.results = {};
+      state.activeId = questions[0].id;
+      render();
+    });
+
+    document.getElementById("showResultsBtn").addEventListener("click", () => {
+      resultsPanel.classList.toggle("show");
+      updateStats();
+    });
+
+    document.getElementById("retryMissedBtn").addEventListener("click", () => {
+      const firstOpen = checkedQuestions.find((question) => !state.results[question.id]);
+      state.activeId = (firstOpen || questions[0]).id;
+      render();
+    });
+
+    document.getElementById("topicCounter").textContent = `${questions.length} Karten`;
+    render();
+  </script>
+</body>
+</html>
